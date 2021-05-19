@@ -89,20 +89,20 @@ describe("findAll", function () {
   test("works for single filter by name", async function() {
     let companies = await Company.findAll({name: "1"});
     expect(companies).toEqual(
-      {
+      [{
         handle: "c1",
         name: "C1",
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
-      }
+      }]
     )
   });
 
   test("works for case-insensitive name", async function() {
     let companies = await Company.findAll({name: "c"});
     expect(companies).toEqual(
-      {
+      [{
         handle: "c1",
         name: "C1",
         description: "Desc1",
@@ -122,16 +122,14 @@ describe("findAll", function () {
         description: "Desc3",
         numEmployees: 3,
         logoUrl: "http://c3.img",
-    });
+    }]);
   });
 
   test("works for multiple filters", async function() {
-    let companies = await Company.findAll({
-      minEmployees: 1, 
-      maxEmployees: 2
-    });
+    let filters = {minEmployees: "1", maxEmployees: "2"};
+    let companies = await Company.findAll(filters);
     expect(companies).toEqual(
-      {
+      [{
         handle: "c1",
         name: "C1",
         description: "Desc1",
@@ -144,7 +142,7 @@ describe("findAll", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
-    });
+    }]);
   });
 });
 

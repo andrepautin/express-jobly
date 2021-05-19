@@ -117,6 +117,38 @@ describe("GET /companies", function () {
     let resp = await request(app).get("/companies?isAdmin=true");
     expect(resp.statusCode).toEqual(400);
   });
+
+  test("error if no companies matching filter", async function(){
+    let resp = await request(app).get("/companies?name=d");
+    expect(resp.statusCode).toEqual(404)
+    expect(resp.body).toEqual({ "error": {
+      "message": "No matching companies",
+      "status": 404
+    }});
+  })
+
+  test("successful filtering name + min", async function(){
+    let resp = await request(app).get("/companies?name=c&minEmployees=2");
+    expect(resp.body).toEqual({
+      companies:
+          [
+            {
+              handle: "c2",
+              name: "C2",
+              description: "Desc2",
+              numEmployees: 2,
+              logoUrl: "http://c2.img",
+            },
+            {
+              handle: "c3",
+              name: "C3",
+              description: "Desc3",
+              numEmployees: 3,
+              logoUrl: "http://c3.img",
+            },
+          ],
+    });
+  })
 });
 
 /************************************** GET /companies/:handle */

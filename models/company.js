@@ -2,7 +2,7 @@
 
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
-const { sqlForPartialUpdate } = require("../helpers/sql");
+const { sqlForPartialUpdate, sqlForCompanyFilterSearch } = require("../helpers/sql");
 
 /** Related functions for companies. */
 
@@ -49,45 +49,44 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
+  /** Find all companies. 
+   * If filters provided finds all companies matching filters
    *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
-    // let queryVals = [];
-    // let filterQuery = `
-    //   SELECT handle,
-    //   name,
-    //   description,
-    //   num_employees AS "numEmployees",
-    //   logo_url AS "logoUrl"
-    //     FROM companies
-    //     WHERE ${queryValsString}
-    //     ORDER BY name`;
-    // if (Object.keys(filters).length === 0) {
+  static async findAll(filters) {
+    if (filters===undefined) {
+      // console.log("inside if!")
       const companiesRes = await db.query(
         `SELECT handle,
-        name,
-        description,
-        num_employees AS "numEmployees",
-        logo_url AS "logoUrl"
-        FROM companies
-        ORDER BY name`);
+                name,
+                description,
+                num_employees AS "numEmployees",
+                logo_url AS "logoUrl" 
+          FROM companies 
+          ORDER BY name`);
         return companiesRes.rows;
-    } 
-    // const {name, minEmployees, maxEmployees} = filters;
-    // if (name) {
-    //   queryVals.push(name);
-    // }
-    // if (minEmployees) {
-    //   queryVals.push(minEmployees);
-    // }
-    // if (maxEmployees) {
-    //   queryVals.push(maxEmployees);
-    // }
-    
-
+    }
+    // console.log("model filters!", filters)
+    const queryFilter = sqlForCompanyFilterSearch(filters)
+    // console.log("model post function", queryFilter)
+    const { whereCols, values } = queryFilter
+    let filterQuery = `SELECT handle,
+                        name,
+                        description,
+                        num_employees AS "numEmployees",
+                        logo_url AS "logoUrl"
+                          FROM companies
+                          WHERE ${whereCols}
+                          ORDER BY name`;
+    if (values===undefined){
+      const filteredComps = await db.query(filterQuery);
+      return filteredComps.rows;
+    };
+    const filteredComps = await db.query(filterQuery, [values]);
+    return filteredComps.rows;
+  }
   /** Given a company handle, return data about company.
    *
    * Returns { handle, name, description, numEmployees, logoUrl, jobs }

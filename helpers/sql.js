@@ -41,4 +41,38 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   };
 }
 
-module.exports = { sqlForPartialUpdate };
+/** Used for company filtering sql, pass in filter data 
+ * and it will return an object containing the sql query statement
+ * and the values to be passed in when using db.query
+ * 
+ * e.g {name:"No", minEmployees:"2", maxEmployees:"3"} ==>
+ * {whereCols:'name ILIKE $1 AND num_employees >= min AND max >= num_employees',
+ *  values: '%No%'}
+ * 
+ * e.g {name:"no", maxEmployees: "3"} ==>
+ * {whereCols: 'name ILIKE $1 AND 3 >= num_employee
+ *  values: '%no%'}
+ * 
+ */
+function sqlForCompanyFilterSearch(filterData) {
+  // console.log("filter ran! filter Data =>", filterData)
+  const keys = Object.keys(filterData); //["name", "minEmployees", "maxEmployees"]
+  let cols = [];
+  let name;
+
+  if (keys.includes("name")){
+    cols.push(`name ILIKE $1`)
+    name = `%${filterData.name}%`
+  };
+  if (keys.includes("minEmployees")){
+      cols.push(`num_employees >= ${+filterData.minEmployees}`)
+  };
+  if (keys.includes("maxEmployees")){
+    cols.push(`${+filterData.maxEmployees} >= num_employees`)
+  }
+
+  return {whereCols: cols.join("AND "),
+          values: name};
+}
+
+module.exports = { sqlForPartialUpdate, sqlForCompanyFilterSearch };

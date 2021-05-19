@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError } = require("../expressError");
+const { BadRequestError, NotFoundError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
@@ -40,7 +40,7 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 /** GET /  =>
  *   { companies: [ { handle, name, description, numEmployees, logoUrl }, ...] }
  *
- * Can filter on provided search filters:
+ * Can filter on provided search filters (passed in the query string):
  * - minEmployees
  * - maxEmployees
  * - nameLike (will find case-insensitive, partial matches)
@@ -49,7 +49,13 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
+
   const queryVals = req.query;
+
+  if (Object.keys(queryVals).length === 0){
+    const companies = await Company.findAll();
+    return res.json({ companies });
+  };
 
   const validator = jsonschema.validate(queryVals, companyFilterSchema);
   if (!validator.valid) {
@@ -62,7 +68,13 @@ router.get("/", async function (req, res, next) {
       throw new BadRequestError("minEmployees cannot be more than maxEmployees");
     }
   }
+
   const companies = await Company.findAll(queryVals);
+
+  if(companies.length===0){
+    throw new NotFoundError('No matching companies')
+  }
+
   return res.json({ companies });
 });
 
