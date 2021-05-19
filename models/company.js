@@ -55,16 +55,38 @@ class Company {
    * */
 
   static async findAll() {
-    const companiesRes = await db.query(
+    // let queryVals = [];
+    // let filterQuery = `
+    //   SELECT handle,
+    //   name,
+    //   description,
+    //   num_employees AS "numEmployees",
+    //   logo_url AS "logoUrl"
+    //     FROM companies
+    //     WHERE ${queryValsString}
+    //     ORDER BY name`;
+    // if (Object.keys(filters).length === 0) {
+      const companiesRes = await db.query(
         `SELECT handle,
-                name,
-                description,
-                num_employees AS "numEmployees",
-                logo_url AS "logoUrl"
-           FROM companies
-           ORDER BY name`);
-    return companiesRes.rows;
-  }
+        name,
+        description,
+        num_employees AS "numEmployees",
+        logo_url AS "logoUrl"
+        FROM companies
+        ORDER BY name`);
+        return companiesRes.rows;
+    } 
+    // const {name, minEmployees, maxEmployees} = filters;
+    // if (name) {
+    //   queryVals.push(name);
+    // }
+    // if (minEmployees) {
+    //   queryVals.push(minEmployees);
+    // }
+    // if (maxEmployees) {
+    //   queryVals.push(maxEmployees);
+    // }
+    
 
   /** Given a company handle, return data about company.
    *

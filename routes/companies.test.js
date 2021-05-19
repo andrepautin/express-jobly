@@ -12,6 +12,7 @@ const {
   commonAfterAll,
   u1Token,
 } = require("./_testCommon");
+const Company = require("../models/company");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -93,7 +94,7 @@ describe("GET /companies", function () {
               logoUrl: "http://c3.img",
             },
           ],
-    });
+    });    
   });
 
   test("fails: test next() handler", async function () {
@@ -105,6 +106,16 @@ describe("GET /companies", function () {
         .get("/companies")
         .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(500);
+  });
+
+  test("fails if minEmployees > maxEmployees", async function() {
+    let resp = await request(app).get("/companies?minEmployees=10&maxEmployees=2");
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("fails if passed bad query string", async function() {
+    let resp = await request(app).get("/companies?isAdmin=true");
+    expect(resp.statusCode).toEqual(400);
   });
 });
 
