@@ -51,7 +51,8 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 router.get("/", async function (req, res, next) {
 
   const queryVals = req.query;
-  //TODO: see if it is efficient here
+  //TODO: see if it is efficient here; ADD title and descp to schema
+  //change schema for string to integers for num_employee section, convert to number it here
   if (Object.keys(queryVals).length === 0){
     const companies = await Company.findAll();
     return res.json({ companies });
