@@ -45,15 +45,17 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
  * and it will return an object containing the sql query statement
  * and the values to be passed in when using db.query
  * 
- * e.g {name:"No", minEmployees:"2", maxEmployees:"3"} ==>
- * {whereCols:'name ILIKE $1 AND num_employees >= min AND max >= num_employees',
+ * e.g {name:"No", minEmployees:"2", maxEmployees:"3"} 
+ * ==> {whereCols:'name ILIKE $1 AND num_employees >= min AND max >= num_employees',
  *  values: '%No%'}
  * 
- * e.g {name:"no", maxEmployees: "3"} ==>
- * {whereCols: 'name ILIKE $1 AND 3 >= num_employee
+ * e.g {name:"no", maxEmployees: "3"} 
+ * ==> {whereCols: 'name ILIKE $1 AND 3 >= num_employee
  *  values: '%no%'}
  * 
  */
+//TODO: find better way to return only needed data 
+//(b/c it affects others using this function)
 function sqlForCompanyFilterSearch(filterData) {
   // console.log("filter ran! filter Data =>", filterData)
   const keys = Object.keys(filterData); //["name", "minEmployees", "maxEmployees"]
@@ -76,3 +78,9 @@ function sqlForCompanyFilterSearch(filterData) {
 }
 
 module.exports = { sqlForPartialUpdate, sqlForCompanyFilterSearch };
+
+//TODO; somehow have the numbers passed as query parameters to combat sql inject
+//OPTION: make it push the query select statement part into an array 
+//have the $ in that statement be the length of current array
+//we would return the whereCol and a values array (which should be correct)
+

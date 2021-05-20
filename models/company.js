@@ -54,7 +54,7 @@ class Company {
    *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
-
+  //TODO: fix filter function
   static async findAll(filters) {
     if (filters===undefined) {
       // console.log("inside if!")
