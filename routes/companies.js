@@ -51,12 +51,19 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 router.get("/", async function (req, res, next) {
 
   const queryVals = req.query;
+  // console.log("QUERY VALUES PASSED IN--->", queryVals);
   //TODO: see if it is efficient here; ADD title and descp to schema
   //change schema for string to integers for num_employee section, convert to number it here
-  if (Object.keys(queryVals).length === 0){
-    const companies = await Company.findAll();
-    return res.json({ companies });
-  };
+  // if (Object.keys(queryVals).length === 0){
+  //   const companies = await Company.findAll();
+  //   return res.json({ companies });
+  // };
+  if (queryVals.minEmployees) {
+    queryVals.minEmployees = +queryVals.minEmployees;
+  }
+  if (queryVals.maxEmployees) {
+    queryVals.maxEmployees = +queryVals.maxEmployees;
+  }
 
   const validator = jsonschema.validate(queryVals, companyFilterSchema);
   if (!validator.valid) {
@@ -64,10 +71,8 @@ router.get("/", async function (req, res, next) {
     throw new BadRequestError(errs);
   }
 
-  if (queryVals.minEmployees && queryVals.maxEmployees) {
-    if (+queryVals.minEmployees > +queryVals.maxEmployees) {
-      throw new BadRequestError("minEmployees cannot be more than maxEmployees");
-    }
+  if (queryVals.minEmployees > queryVals.maxEmployees) {
+    throw new BadRequestError("minEmployees cannot be more than maxEmployees");
   }
 
   const companies = await Company.findAll(queryVals);

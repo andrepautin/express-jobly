@@ -2,7 +2,7 @@
 
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
-const { sqlForPartialUpdate, sqlForCompanyFilterSearch } = require("../helpers/sql");
+const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for companies. */
 
@@ -56,38 +56,25 @@ class Company {
    * */
   //TODO: fix filter function
   static async findAll(filters) {
-    if (filters===undefined) {
-      // console.log("inside if!")
-      const companiesRes = await db.query(
-        `SELECT handle,
-                name,
-                description,
-                num_employees AS "numEmployees",
-                logo_url AS "logoUrl" 
-          FROM companies 
-          ORDER BY name`);
-        return companiesRes.rows;
-    }
+    console.log("FILTERS--->", filters);
+    let baseQuery = `SELECT handle,
+                            name,
+                            description,
+                            num_employees AS "numEmployees",
+                            logo_url AS "logoUrl"
+                            FROM companies`
     // console.log("model filters!", filters)
-    const queryFilter = sqlForCompanyFilterSearch(filters)
-    // console.log("model post function", queryFilter)
-    const { whereCols, values } = queryFilter
-    let filterQuery = `SELECT handle,
-                        name,
-                        description,
-                        num_employees AS "numEmployees",
-                        logo_url AS "logoUrl"
-                          FROM companies
-                          WHERE ${whereCols}
-                          ORDER BY name`;
-
-    if (values===undefined){
-      const filteredComps = await db.query(filterQuery);
-      return filteredComps.rows;
-    };
-    
-    const filteredComps = await db.query(filterQuery, [values]);
-    return filteredComps.rows;
+    if (filters !== undefined && Object.keys(filters).length !== 0) {
+      const queryFilter = Company._sqlForCompanyFilterSearch(filters);
+      const { whereCols, values } = queryFilter
+      baseQuery += whereCols + " ORDER BY name";
+      const filteredCompanies = await db.query(baseQuery, values);
+      return filteredCompanies.rows;
+    }
+    // console.log("model post function", queryFilter)  
+    baseQuery += " ORDER BY name";
+    const allCompanies = await db.query(baseQuery);
+    return allCompanies.rows;
   }
   /** Given a company handle, return data about company.
    *
@@ -164,6 +151,46 @@ class Company {
     const company = result.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
+  }
+
+  // ========================== HELPER FUNCTIONS ======================
+  /** Used for company filtering sql, pass in filter data 
+ * and it will return an object containing the sql query statement
+ * and the values to be passed in when using db.query
+ * 
+ * e.g {name:"No", minEmployees:"2", maxEmployees:"3"} 
+ * ==> {whereCols:'name ILIKE $1 AND num_employees >= min AND max >= num_employees',
+ *  values: '%No%'}
+ * 
+ * e.g {name:"no", maxEmployees: "3"} 
+ * ==> {whereCols: 'name ILIKE $1 AND 3 >= num_employee
+ *  values: '%no%'}
+ * 
+ */
+//TODO: find better way to return only needed data/ move to model as method (rename with _sql... to signal internal use)
+//(b/c it affects others using this function)
+  static _sqlForCompanyFilterSearch(filterData) {
+    // console.log("filter ran! filter Data =>", filterData)
+    const {name, minEmployees, maxEmployees} = filterData; //["name", "minEmployees", "maxEmployees"]
+    let values = [];
+    let whereClauses = [];
+
+    if (name){
+      values.push(`%${name}%`);
+      whereClauses.push(`name ILIKE $${values.length}`);
+    };
+
+    if (minEmployees){
+      values.push(minEmployees);
+      whereClauses.push(`num_employees >= $${values.length}`);
+    };
+
+    if (maxEmployees){
+      values.push(maxEmployees)
+      whereClauses.push(`num_employees <= $${values.length}`);
+    }
+
+    return {whereCols: " WHERE " + whereClauses.join(" AND "), values};
   }
 }
 
