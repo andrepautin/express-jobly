@@ -5,8 +5,8 @@ const { UnauthorizedError } = require("../expressError");
 const {
   authenticateJWT,
   ensureLoggedIn,
-  isAdmin,
-  isAdminOrCorrectUser,
+  ensureAdmin,
+  ensureAdminOrCorrectUser,
 } = require("./auth");
 
 
@@ -82,9 +82,9 @@ describe("ensureLoggedIn", function () {
   });
 });
 
-/************************************** isAdmin */
+/************************************** ensureAdmin */
 
-describe("isAdmin", function(){
+describe("ensureAdmin", function(){
   test("works", function(){
     expect.assertions(1);
     const req = {};
@@ -92,23 +92,23 @@ describe("isAdmin", function(){
     const next = function (err) {
       expect(err).toBeFalsy();
     };
-    isAdmin(req, res, next);
+    ensureAdmin(req, res, next);
   });
 
   test("fails not admin", function(){
     expect.assertions(1);
     const req = {};
-    const res = {locals: {user: {username: "test", isAdmin: false}}};
+    const res = {locals: {user: {username: "test", ensureAdmin: false}}};
     const next = function (err) {
       expect(err instanceof UnauthorizedError).toBeTruthy();
     };
-    isAdmin(req, res, next);
+    ensureAdmin(req, res, next);
   })
 })
 
-/************************************** isAdminOrCorrectUser */
+/************************************** ensureAdminOrCorrectUser */
 
-describe("isAdminOrCorrectUser", function() {
+describe("ensureAdminOrCorrectUser", function() {
   test("works for admin", function() {
     expect.assertions(1);
     const req = {params: {username: "test"}};
@@ -116,7 +116,7 @@ describe("isAdminOrCorrectUser", function() {
     const next = function (err) {
       expect(err).toBeFalsy();
     };
-    isAdminOrCorrectUser(req, res, next);
+    ensureAdminOrCorrectUser(req, res, next);
   });
   
   test("works for user", function() {
@@ -126,7 +126,7 @@ describe("isAdminOrCorrectUser", function() {
     const next = function (err) {
       expect(err).toBeFalsy();
     };
-    isAdminOrCorrectUser(req, res, next);
+    ensureAdminOrCorrectUser(req, res, next);
   });
 
   test("fails for non-admin or incorrect user", function() {
@@ -136,6 +136,6 @@ describe("isAdminOrCorrectUser", function() {
     const next = function (err) {
       expect(err instanceof UnauthorizedError).toBeTruthy();
     };
-    isAdminOrCorrectUser(req, res, next);
+    ensureAdminOrCorrectUser(req, res, next);
   });
 });

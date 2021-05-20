@@ -18,16 +18,16 @@ class Company {
 
   static async create({ handle, name, description, numEmployees, logoUrl }) {
     const duplicateCheck = await db.query(
-        `SELECT handle
+      `SELECT handle
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]);
 
     if (duplicateCheck.rows[0])
       throw new BadRequestError(`Duplicate company: ${handle}`);
 
     const result = await db.query(
-        `INSERT INTO companies(
+      `INSERT INTO companies(
           handle,
           name,
           description,
@@ -36,13 +36,13 @@ class Company {
            VALUES
              ($1, $2, $3, $4, $5)
            RETURNING handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"`,
-        [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      [
+        handle,
+        name,
+        description,
+        numEmployees,
+        logoUrl,
+      ],
     );
     const company = result.rows[0];
 
@@ -55,7 +55,7 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
   //TODO: fix filter function
-  static async findAll(filters) {
+  static async findAll(filters = {}) {
     console.log("FILTERS--->", filters);
     let baseQuery = `SELECT handle,
                             name,
@@ -64,16 +64,14 @@ class Company {
                             logo_url AS "logoUrl"
                             FROM companies`
     // console.log("model filters!", filters)
-    if (filters !== undefined && Object.keys(filters).length !== 0) {
-      const queryFilter = Company._sqlForCompanyFilterSearch(filters);
-      const { whereCols, values } = queryFilter
-      baseQuery += whereCols + " ORDER BY name";
-      const filteredCompanies = await db.query(baseQuery, values);
-      return filteredCompanies.rows;
+    const { whereExpression, values } = Company._sqlForCompanyFilterSearch(filters);
+    if (whereExpression !== "") {
+      baseQuery += whereExpression;
     }
-    // console.log("model post function", queryFilter)  
     baseQuery += " ORDER BY name";
-    const allCompanies = await db.query(baseQuery);
+    // console.log("model post function", queryFilter)  
+    console.log("BASE QUERY--->", baseQuery);
+    const allCompanies = await db.query(baseQuery, values);
     return allCompanies.rows;
   }
   /** Given a company handle, return data about company.
@@ -86,14 +84,14 @@ class Company {
 
   static async get(handle) {
     const companyRes = await db.query(
-        `SELECT handle,
+      `SELECT handle,
                 name,
                 description,
                 num_employees AS "numEmployees",
                 logo_url AS "logoUrl"
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]);
 
     const company = companyRes.rows[0];
 
@@ -116,11 +114,11 @@ class Company {
 
   static async update(handle, data) {
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
+      data,
+      {
+        numEmployees: "num_employees",
+        logoUrl: "logo_url",
+      });
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `
@@ -143,11 +141,11 @@ class Company {
 
   static async remove(handle) {
     const result = await db.query(
-        `DELETE
+      `DELETE
            FROM companies
            WHERE handle = $1
            RETURNING handle`,
-        [handle]);
+      [handle]);
     const company = result.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
@@ -167,30 +165,35 @@ class Company {
  *  values: '%no%'}
  * 
  */
-//TODO: find better way to return only needed data/ move to model as method (rename with _sql... to signal internal use)
-//(b/c it affects others using this function)
+  //TODO: find better way to return only needed data/ move to model as method (rename with _sql... to signal internal use)
+  //(b/c it affects others using this function)
   static _sqlForCompanyFilterSearch(filterData) {
+
     // console.log("filter ran! filter Data =>", filterData)
-    const {name, minEmployees, maxEmployees} = filterData; //["name", "minEmployees", "maxEmployees"]
+    const { name, minEmployees, maxEmployees } = filterData; //["name", "minEmployees", "maxEmployees"]
     let values = [];
     let whereClauses = [];
+    let whereExpression = ""
 
-    if (name){
+    if (name) {
       values.push(`%${name}%`);
       whereClauses.push(`name ILIKE $${values.length}`);
     };
 
-    if (minEmployees){
+    if (minEmployees) {
       values.push(minEmployees);
       whereClauses.push(`num_employees >= $${values.length}`);
     };
 
-    if (maxEmployees){
+    if (maxEmployees) {
       values.push(maxEmployees)
       whereClauses.push(`num_employees <= $${values.length}`);
     }
 
-    return {whereCols: " WHERE " + whereClauses.join(" AND "), values};
+    if (whereClauses.length > 0) {
+      whereExpression = " WHERE " + whereClauses.join(" AND ");
+    }
+    return { whereExpression, values };
   }
 }
 

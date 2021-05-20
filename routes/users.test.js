@@ -276,6 +276,7 @@ describe("GET /users/:username", function () {
     const resp = await request(app)
         .get(`/users/u1`)
         .set("authorization", `Bearer ${u2Token}`);
+    console.log("RESPONSE BODY--->", resp.body);
     expect(resp.statusCode).toEqual(401)
   });
 
