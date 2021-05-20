@@ -265,3 +265,39 @@ describe("remove", function () {
     }
   });
 });
+
+/************************************** filter method */
+
+describe("sql filter maker", function () {
+  test("valid correct statement", function(){
+    let filters = {name: "cho", minEmployees: 3, maxEmployees: 5};
+    let query = Company._sqlForCompanyFilterSearch(filters);
+
+    expect(query).toEqual({whereCols:" WHERE name ILIKE $1 AND num_employees >= $2 AND num_employees <= $3",
+     values:["%cho%", 3, 5]})
+  });
+
+  test("valid two min/max filter", function (){
+    let filters = {minEmployees: 3, maxEmployees: 5};
+    let query = Company._sqlForCompanyFilterSearch(filters);
+
+    expect(query).toEqual({whereCols:" WHERE num_employees >= $1 AND num_employees <= $2",
+    values:[3, 5]});
+  });
+
+  test("valid min and name output", function(){
+    let filters = {minEmployees: 3, name: "cho"};
+    let query = Company._sqlForCompanyFilterSearch(filters);
+
+    expect(query).toEqual({whereCols:" WHERE name ILIKE $1 AND num_employees >= $2",
+    values:["%cho%", 3]});
+  });
+
+  test("empty filter", function(){
+    //scenario => our if statement not working
+    let filters = {};
+    let query = Company._sqlForCompanyFilterSearch(filters);
+
+    expect(query).toEqual({"values": [], "whereCols": " WHERE "});
+  })
+})

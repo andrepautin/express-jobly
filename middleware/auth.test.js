@@ -5,12 +5,15 @@ const { UnauthorizedError } = require("../expressError");
 const {
   authenticateJWT,
   ensureLoggedIn,
+  isAdmin,
 } = require("./auth");
 
 
 const { SECRET_KEY } = require("../config");
 const testJwt = jwt.sign({ username: "test", isAdmin: false }, SECRET_KEY);
 const badJwt = jwt.sign({ username: "test", isAdmin: false }, "wrong");
+
+const testJwtAdmin = jwt.sign({ username: "testAdmin", isAdmin: true }, SECRET_KEY);
 
 
 describe("authenticateJWT", function () {
@@ -59,7 +62,7 @@ describe("ensureLoggedIn", function () {
   test("works", function () {
     expect.assertions(1);
     const req = {};
-    const res = { locals: { user: { username: "test", is_admin: false } } };
+    const res = { locals: { user: { username: "test", isAdmin: false } } };
     const next = function (err) {
       expect(err).toBeFalsy();
     };
@@ -76,3 +79,25 @@ describe("ensureLoggedIn", function () {
     ensureLoggedIn(req, res, next);
   });
 });
+
+describe("isAdmin", function(){
+  test("works", function(){
+    expect.assertions(1);
+    const req = {};
+    const res = {locals: {user: {username: "testAdmin", isAdmin: true}}};
+    const next = function (err) {
+      expect(err).toBeFalsy();
+    };
+    isAdmin(req, res, next);
+  });
+
+  test("fails not admin", function(){
+    expect.assertions(1);
+    const req = {};
+    const res = {locals: {user: {username: "test", isAdmin: false}}};
+    const next = function (err) {
+      expect(err instanceof UnauthorizedError).toBeTruthy();
+    };
+    isAdmin(req, res, next);
+  })
+})
