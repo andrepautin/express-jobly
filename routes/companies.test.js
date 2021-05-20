@@ -31,7 +31,7 @@ describe("POST /companies", function () {
     numEmployees: 10,
   };
 
-  test("not admin ok data", async function () {
+  test("user: unauthorized", async function () {
     const resp = await request(app)
         .post("/companies")
         .send(newCompany)
@@ -42,7 +42,7 @@ describe("POST /companies", function () {
     });
   });
 
-  test("not admin bad request with missing data", async function () {
+  test("user unauth: bad request with missing data", async function () {
     const resp = await request(app)
         .post("/companies")
         .send({
@@ -53,7 +53,7 @@ describe("POST /companies", function () {
     expect(resp.statusCode).toEqual(401);
   });
 
-  test("not admin bad request with invalid data", async function () {
+  test("user unauth: bad request with invalid data", async function () {
     const resp = await request(app)
         .post("/companies")
         .send({
@@ -223,7 +223,7 @@ describe("GET /companies/:handle", function () {
 /************************************** PATCH /companies/:handle */
 
 describe("PATCH /companies/:handle", function () {
-  test("not admin fail", async function () {
+  test("user unauth: fail", async function () {
     const resp = await request(app)
         .patch(`/companies/c1`)
         .send({
@@ -262,7 +262,7 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.statusCode).toEqual(401);
   });
 
-  test("not admin not found on no such company", async function () {
+  test("user unauth: not found on no such company", async function () {
     const resp = await request(app)
         .patch(`/companies/nope`)
         .send({
@@ -282,7 +282,7 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.statusCode).toEqual(404);
   });
 
-  test("not admin bad request on handle change attempt", async function () {
+  test("user unauth: bad request on handle change attempt", async function () {
     const resp = await request(app)
         .patch(`/companies/c1`)
         .send({
@@ -302,7 +302,7 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.statusCode).toEqual(400);
   });
 
-  test("not admin bad request on invalid data", async function () {
+  test("user unauth: bad request on invalid data", async function () {
     const resp = await request(app)
         .patch(`/companies/c1`)
         .send({
@@ -348,7 +348,7 @@ describe("DELETE /companies/:handle", function () {
     expect(resp.statusCode).toEqual(401);
   });
 
-  test("not admin not found for no such company", async function () {
+  test("user unauth: not found for no such company", async function () {
     const resp = await request(app)
         .delete(`/companies/nope`)
         .set("authorization", `Bearer ${u1Token}`);

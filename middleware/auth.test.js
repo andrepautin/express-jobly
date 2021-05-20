@@ -6,6 +6,7 @@ const {
   authenticateJWT,
   ensureLoggedIn,
   isAdmin,
+  isAdminOrCorrectUser,
 } = require("./auth");
 
 
@@ -13,8 +14,8 @@ const { SECRET_KEY } = require("../config");
 const testJwt = jwt.sign({ username: "test", isAdmin: false }, SECRET_KEY);
 const badJwt = jwt.sign({ username: "test", isAdmin: false }, "wrong");
 
-const testJwtAdmin = jwt.sign({ username: "testAdmin", isAdmin: true }, SECRET_KEY);
 
+/************************************** authenticateJWT */
 
 describe("authenticateJWT", function () {
   test("works: via header", function () {
@@ -57,6 +58,7 @@ describe("authenticateJWT", function () {
   });
 });
 
+/************************************** ensureLoggedIn */
 
 describe("ensureLoggedIn", function () {
   test("works", function () {
@@ -80,6 +82,8 @@ describe("ensureLoggedIn", function () {
   });
 });
 
+/************************************** isAdmin */
+
 describe("isAdmin", function(){
   test("works", function(){
     expect.assertions(1);
@@ -101,3 +105,37 @@ describe("isAdmin", function(){
     isAdmin(req, res, next);
   })
 })
+
+/************************************** isAdminOrCorrectUser */
+
+describe("isAdminOrCorrectUser", function() {
+  test("works for admin", function() {
+    expect.assertions(1);
+    const req = {params: {username: "test"}};
+    const res = {locals: {user: {username: "testAdmin", isAdmin: true}}};
+    const next = function (err) {
+      expect(err).toBeFalsy();
+    };
+    isAdminOrCorrectUser(req, res, next);
+  });
+  
+  test("works for user", function() {
+    expect.assertions(1);
+    const req = {params: {username: "test"}};
+    const res = {locals: {user: {username: "test", isAdmin: false}}};
+    const next = function (err) {
+      expect(err).toBeFalsy();
+    };
+    isAdminOrCorrectUser(req, res, next);
+  });
+
+  test("fails for non-admin or incorrect user", function() {
+    expect.assertions(1);
+    const req = {params: {username: "test"}};
+    const res = {locals: {user: {username: "test2", isAdmin: false}}};
+    const next = function (err) {
+      expect(err instanceof UnauthorizedError).toBeTruthy();
+    };
+    isAdminOrCorrectUser(req, res, next);
+  });
+});
