@@ -273,7 +273,7 @@ describe("sql filter maker", function () {
     let filters = {name: "cho", minEmployees: 3, maxEmployees: 5};
     let query = Company._sqlForCompanyFilterSearch(filters);
 
-    expect(query).toEqual({whereCols:" WHERE name ILIKE $1 AND num_employees >= $2 AND num_employees <= $3",
+    expect(query).toEqual({whereExpression:" WHERE name ILIKE $1 AND num_employees >= $2 AND num_employees <= $3",
      values:["%cho%", 3, 5]})
   });
 
@@ -281,7 +281,7 @@ describe("sql filter maker", function () {
     let filters = {minEmployees: 3, maxEmployees: 5};
     let query = Company._sqlForCompanyFilterSearch(filters);
 
-    expect(query).toEqual({whereCols:" WHERE num_employees >= $1 AND num_employees <= $2",
+    expect(query).toEqual({whereExpression:" WHERE num_employees >= $1 AND num_employees <= $2",
     values:[3, 5]});
   });
 
@@ -289,7 +289,7 @@ describe("sql filter maker", function () {
     let filters = {minEmployees: 3, name: "cho"};
     let query = Company._sqlForCompanyFilterSearch(filters);
 
-    expect(query).toEqual({whereCols:" WHERE name ILIKE $1 AND num_employees >= $2",
+    expect(query).toEqual({whereExpression:" WHERE name ILIKE $1 AND num_employees >= $2",
     values:["%cho%", 3]});
   });
 
@@ -298,6 +298,6 @@ describe("sql filter maker", function () {
     let filters = {};
     let query = Company._sqlForCompanyFilterSearch(filters);
 
-    expect(query).toEqual({"values": [], "whereCols": " WHERE "});
+    expect(query).toEqual({"values": [], "whereExpression": ""});
   })
 })
