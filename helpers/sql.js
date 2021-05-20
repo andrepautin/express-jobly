@@ -54,7 +54,7 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
  *  values: '%no%'}
  * 
  */
-//TODO: find better way to return only needed data 
+//TODO: find better way to return only needed data/ move to model as method (rename with _sql... to signal internal use)
 //(b/c it affects others using this function)
 function sqlForCompanyFilterSearch(filterData) {
   // console.log("filter ran! filter Data =>", filterData)

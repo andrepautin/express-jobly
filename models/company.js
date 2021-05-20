@@ -80,10 +80,12 @@ class Company {
                           FROM companies
                           WHERE ${whereCols}
                           ORDER BY name`;
+
     if (values===undefined){
       const filteredComps = await db.query(filterQuery);
       return filteredComps.rows;
     };
+    
     const filteredComps = await db.query(filterQuery, [values]);
     return filteredComps.rows;
   }
