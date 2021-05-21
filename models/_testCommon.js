@@ -3,13 +3,15 @@ const bcrypt = require("bcrypt");
 const db = require("../db.js");
 const { BCRYPT_WORK_FACTOR } = require("../config");
 
-let jobResult1Id;
+let jobResultIds = [];
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
   await db.query("DELETE FROM companies");
   // noinspection SqlWithoutWhere
   await db.query("DELETE FROM users");
+  // noinspection SqlWithoutWhere
+  await db.query("DELETE FROM jobs");
 
   await db.query(`
     INSERT INTO companies(handle, name, num_employees, description, logo_url)
@@ -33,16 +35,17 @@ async function commonBeforeAll() {
 
   let jobResult1 = await db.query(`
   INSERT INTO jobs(title, salary, equity, company_handle)
-  VALUES ('Manager', 10000, 0.010, 'c1'),
+  VALUES ('Manager', 10000, '0.010', 'c1')
   RETURNING id`);    
 
   await db.query(`
   INSERT INTO jobs(title, salary, equity, company_handle)
-  VALUES ('Receptionist', 20000, 0.020, 'c2'),
-          ('Custodian', 30000, 0.030, 'c3')
+  VALUES ('Receptionist', 20000, '0.020', 'c2'),
+          ('Custodian', 30000, '0.030', 'c3')
   RETURNING id`); 
-
-  jobResult1Id = jobResult1.rows[0].id;
+  // console.log("jobResult1 in common file", jobResult1);
+  jobResultIds[0]= jobResult1.rows[0].id;
+  console.log("jobResult1Id in common file", jobResultIds);
 }
 
 
@@ -64,5 +67,7 @@ module.exports = {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  jobResult1Id,
+  jobResultIds,
 };
+
+console.log("jobID->", jobResultIds)
