@@ -98,7 +98,17 @@ describe("ensureAdmin", function(){
   test("fails not admin", function(){
     expect.assertions(1);
     const req = {};
-    const res = {locals: {user: {username: "test", ensureAdmin: false}}};
+    const res = {locals: {user: {username: "test", isAdmin: false}}};
+    const next = function (err) {
+      expect(err instanceof UnauthorizedError).toBeTruthy();
+    };
+    ensureAdmin(req, res, next);
+  })
+
+  test("fails isAdmin incorrect type", function(){
+    expect.assertions(1);
+    const req = {};
+    const res = {locals: {user: {username: "test", isAdmin: "asjkfa"}}};
     const next = function (err) {
       expect(err instanceof UnauthorizedError).toBeTruthy();
     };
@@ -138,4 +148,14 @@ describe("ensureAdminOrCorrectUser", function() {
     };
     ensureAdminOrCorrectUser(req, res, next);
   });
+
+  test("fails isAdmin incorrect type", function(){
+    expect.assertions(1);
+    const req = {params: {username: "test2"}};
+    const res = {locals: {user: {username: "test", isAdmin: "asjfka"}}};
+    const next = function (err) {
+      expect(err instanceof UnauthorizedError).toBeTruthy();
+    };
+    ensureAdminOrCorrectUser(req, res, next);
+  })
 });

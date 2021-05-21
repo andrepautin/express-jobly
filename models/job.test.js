@@ -151,6 +151,7 @@ describe("findAll", function () {
 
 describe("get", function () {
   test("works", async function () {
+    // TODO: need to find out how to get ids to use here
     let job = await Company.get(id);
     expect(company).toEqual({
       handle: "c1",

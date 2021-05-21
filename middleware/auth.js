@@ -50,9 +50,10 @@ function ensureLoggedIn(req, res, next) {
 function ensureAdmin(req, res, next){
   try {
     // console.log("req, res, next ==>", req, res, next)
-    if (!res.locals.user || !res.locals.user.isAdmin) throw new UnauthorizedError();
+    if (!res.locals.user || res.locals.user.isAdmin !== true) throw new UnauthorizedError();
     return next();
   } catch (err) {
+    console.log("ERROR ensureAdmin --->", err);
     return next(err);
   }
 }
@@ -69,7 +70,7 @@ function ensureAdminOrCorrectUser(req, res, next) {
       throw new UnauthorizedError();
     }
 
-    const adminOrUser = res.locals.user.isAdmin || (res.locals.user.username === req.params.username);
+    const adminOrUser = res.locals.user.isAdmin === true || (res.locals.user.username === req.params.username);
     
     if (!adminOrUser) {
       throw new UnauthorizedError();
@@ -77,6 +78,8 @@ function ensureAdminOrCorrectUser(req, res, next) {
       return next();
     }
   } catch (err) {
+    console.log("ERROR ensureAdminOrCorrectUser--->", err);
+
     return next(err);
   }
 }
